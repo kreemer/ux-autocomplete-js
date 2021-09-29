@@ -1,5 +1,8 @@
 # UX autoComplete.js
 
+![demo](https://lethani.ch/wp-content/uploads/2021/09/ezgif-2-9fc1658d935d.gif)
+
+
 UX autoComplete.js is a Symfony bundle integrating the [autoComplete.js](https://tarekraafat.github.io/autoComplete.js/#/) library in Symfony applications. It is part of [the Symfony UX initiative](https://symfony.com/ux).
 
 ## Installation
