@@ -1,0 +1,48 @@
+{
+  "name": "kreemer/ux-autocomplete-js",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "keywords": [
+    "symfony-ux"
+  ],
+  "require": {
+    "php": ">=7.4",
+    "ext-json": "*",
+    "symfony/config": "^4.4.17|^5.0",
+    "symfony/dependency-injection": "^4.4.17|^5.0",
+    "symfony/doctrine-bridge": "^5.3",
+    "symfony/form": "^5.3",
+    "symfony/http-kernel": "^4.4.17|^5.0"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^0.12.99",
+    "friendsofphp/php-cs-fixer": "^3.1",
+    "phpunit/phpunit": "^9",
+    "symfony/framework-bundle": "^4.4.17|^5.0",
+    "symfony/phpunit-bridge": "^5.2",
+    "symfony/twig-bundle": "^4.4.17|^5.0",
+    "symfony/var-dumper": "^4.4.17|^5.0"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": {
+      "*": "dist"
+    },
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Kreemer\\UX\\AutoCompleteJS\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kreemer\\UX\\AutoCompleteJS\\Tests\\": "tests/"
+    }
+  },
+  "conflict": {
+    "symfony/flex": "<1.13"
+  }
+}

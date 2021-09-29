@@ -1,0 +1,44 @@
+{
+    "name": "@kreemer/ux-autocomplete-js",
+    "description": "autoComplete.js integration for Symfony",
+    "license": "MIT",
+    "version": "1.0.0",
+    "symfony": {
+        "controllers": {
+            "autocomplete": {
+                "main": "dist/controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        }
+    },
+    "scripts": {
+        "build": "babel src -d dist && cp -R src/*.css dist",
+        "test": "babel src -d dist && cp -R src/*.css dist && jest",
+        "lint": "eslint src test"
+    },
+    "peerDependencies": {
+        "@tarekraafat/autocomplete.js": "^10.2.6",
+        "stimulus": "^2.0.0"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.12.1",
+        "@babel/core": "^7.12.3",
+        "@babel/plugin-proposal-class-properties": "^7.12.1",
+        "@babel/preset-env": "^7.12.7",
+        "@symfony/stimulus-testing": "^1.1.0",
+        "@tarekraafat/autocomplete.js": "^10.2.6",
+        "jest-canvas-mock": "^2.3.0",
+        "stimulus": "^2.0.0"
+    },
+    "jest": {
+        "testRegex": "test/.*\\.test.js",
+        "setupFilesAfterEnv": [
+            "./test/setup.js"
+        ],
+        "moduleNameMapper": {
+            "\\.(css|less)$": "<rootDir>/test/styleMock.js"
+        }
+    }
+}

@@ -1,0 +1,155 @@
+name: "Build"
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+env:
+  COMPOSER_FLAGS: "--ansi --no-interaction --no-progress --prefer-dist"
+
+jobs:
+  build:
+    name: "Build"
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.4"
+
+    steps:
+      - name: Prepare Check Runs
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checks: |
+            [
+              { "id": "phpunit", "name": "PHPUnit" },
+              { "id": "phpstan", "name": "PHPStan" },
+              { "id": "php-cs-fixer", "name": "php-cs-fixer" }
+            ]
+          status: "queued"
+
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "${{ matrix.php-version }}"
+        env:
+          COMPOSER_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
+
+      - name: Get composer cache directory
+        id: composerCache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composerCache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: "Install latest dependencies"
+        run: |
+          composer install ${{ env.COMPOSER_FLAGS }}
+          cd src/Resources/assets
+          yarn install
+          yarn build
+
+      - name: "Git diff"
+        run: |
+          echo "::group::Check uncommitted assets"
+          echo "Checking if there are uncommitted assets"
+          if git diff --exit-code src/Resources/assets/dist; then
+            echo "Found no changes to assets"
+          else
+            echo "::error::Found changes to assets, exiting pipeline"
+            exit 1
+          fi
+          echo "::endgroup::"
+
+
+      - name: "Report PHPStan Starting"
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: phpstan
+          status: in_progress
+
+
+      - name: "Run PHPStan"
+        id: phpstan
+        continue-on-error: true
+        run: vendor/bin/phpstan analyse
+
+      - name: "Report PHPStan Conclusion"
+        if: always()
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: phpstan
+          conclusion: ${{ steps.phpstan.outcome }}
+          fail-on-error: true
+
+
+      - name: "Report php-cs-fixer Starting"
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: php-cs-fixer
+          status: in_progress
+
+      - name: "Run php-cs-fixer"
+        id: php-cs-fixer
+        continue-on-error: true
+        run: vendor/bin/php-cs-fixer fix -v --dry-run --stop-on-violation --using-cache=no
+
+      - name: "Report php-cs-fixer Conclusion"
+        if: always()
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: php-cs-fixer
+          conclusion: ${{ steps.php-cs-fixer.outcome }}
+          fail-on-error: true
+
+      - name: "Report PHPUnit Starting"
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: phpunit
+          status: in_progress
+
+      - name: "Run PHPUnit"
+        id: phpunit
+        continue-on-error: true
+        run: |
+          vendor/bin/phpunit
+          cd src/Resources/assets
+          yarn test
+
+      - name: "Report PHPUnit Conclusion"
+        if: always()
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: phpunit
+          conclusion: ${{ steps.phpunit.outcome }}
+          fail-on-error: true
+
+      - name: Clean up checks
+        if: always()
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          conclusion: cancelled
